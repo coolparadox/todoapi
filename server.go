@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html"
 	"log"
@@ -10,12 +11,12 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/", Index)
-	http.HandleFunc("/todos/", Todos)
+	http.HandleFunc("/", handleIndex)
+	http.HandleFunc("/todos/", handleTodos)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
+func handleIndex(w http.ResponseWriter, r *http.Request) {
 	// The "/" pattern matches everything, so we need to check
 	// that we're at the root here.
 	if r.URL.Path != "/" {
@@ -25,10 +26,10 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 }
 
-func Todos(w http.ResponseWriter, r *http.Request) {
+func handleTodos(w http.ResponseWriter, r *http.Request) {
 	arg := strings.TrimPrefix(r.URL.Path, "/todos/")
 	if len(arg) == 0 {
-		fmt.Fprintln(w, "Todo Index!")
+		TodoIndex(w, r)
 		return
 	}
 	id, err := strconv.ParseInt(arg, 10, 32)
@@ -37,4 +38,12 @@ func Todos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintln(w, "Todo show:", id)
+}
+
+func TodoIndex(w http.ResponseWriter, r *http.Request) {
+	todos := Todos{
+		Todo{Name: "Write presentation"},
+		Todo{Name: "Host meetup"},
+	}
+	json.NewEncoder(w).Encode(todos)
 }
