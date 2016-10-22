@@ -54,6 +54,8 @@ func handleTodoIndex(w http.ResponseWriter, r *http.Request) {
 			Todo{Name: "Write presentation"},
 			Todo{Name: "Host meetup"},
 		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
 		err := json.NewEncoder(w).Encode(todos)
 		if err != nil {
 			err := fmt.Errorf("failed to encode json: %s")
