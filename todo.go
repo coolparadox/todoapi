@@ -3,7 +3,7 @@ package main
 import "time"
 
 type Todo struct {
-	Id uint32 `json:"id"`
+	Id        uint32    `json:"id"`
 	Name      string    `json:"name"`
 	Completed bool      `json:"completed"`
 	Due       time.Time `json:"due"`
@@ -20,7 +20,7 @@ type TodoData struct {
 
 func (t TodoData) toTodo(id uint32) Todo {
 	return Todo{
-		Id: id,
+		Id:        id,
 		Name:      t.Name,
 		Completed: t.Completed,
 		Due:       time.Unix(t.DueSec, t.DueNano),

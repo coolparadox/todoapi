@@ -33,18 +33,41 @@ func handleTodos(w http.ResponseWriter, r *http.Request) {
 		handleTodoIndex(w, r)
 		return
 	}
-	id, err := strconv.ParseInt(arg, 10, 32)
+	id, err := strconv.ParseUint(arg, 10, 32)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 	switch r.Method {
 	case http.MethodGet:
-		fmt.Fprintln(w, "Todo show:", id)
+		handleGetTodo(w, r, uint32(id))
 		return
 	default:
 		methodNotAllowed(w, []string{http.MethodGet})
 		return
+	}
+}
+
+func handleGetTodo(w http.ResponseWriter, r *http.Request, id uint32) {
+	ok, err := todoData.Exists(id)
+	if err != nil {
+		internalServerError(w, err)
+		return
+	}
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	err = todoData.Load(id)
+	if err != nil {
+		internalServerError(w, err)
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(todoData.toTodo(id))
+	if err != nil {
+		err := fmt.Errorf("failed to retrieve todo resource %v: %s", id, err)
+		log.Print(err)
 	}
 }
 
@@ -54,12 +77,10 @@ func handleTodoIndex(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		err = writeTodos(w)
-		if (err != nil) {
-			err := fmt.Errorf("failed to retrieve todos: %s")
+		err = showTodos(w)
+		if err != nil {
+			err := fmt.Errorf("failed to retrieve todos: %s", err)
 			log.Print(err)
-			// try to inform client about the error
-			internalServerError(w, err)
 			return
 		}
 		return
@@ -69,7 +90,7 @@ func handleTodoIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func writeTodos(w http.ResponseWriter) error {
+func showTodos(w http.ResponseWriter) error {
 	var err error
 	enc := json.NewEncoder(w)
 	_, err = w.Write([]byte("["))
@@ -90,7 +111,7 @@ func writeTodos(w http.ResponseWriter) error {
 			}
 		}
 		isFirst = false
-		err = enc.Encode(todoData.TodoData.toTodo(pos))
+		err = enc.Encode(todoData.toTodo(pos))
 		if err != nil {
 			return fmt.Errorf("failed to encode id %v: %s", pos, err)
 		}
