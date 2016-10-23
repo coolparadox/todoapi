@@ -6,8 +6,16 @@ import (
 	"strings"
 )
 
+func payloadTooLarge(w http.ResponseWriter) {
+	http.Error(w, "413 Payload Too Large", http.StatusRequestEntityTooLarge)
+}
+
 func internalServerError(w http.ResponseWriter, err error) {
 	http.Error(w, fmt.Sprintf("500 Internal Server Error\n%s", err), http.StatusInternalServerError)
+}
+
+func unprocessableEntity(w http.ResponseWriter, err error) {
+	http.Error(w, fmt.Sprintf("422 Unprocessable Entity\n%s", err), http.StatusUnprocessableEntity)
 }
 
 func notImplemented(w http.ResponseWriter) {

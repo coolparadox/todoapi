@@ -15,7 +15,6 @@ type TodoData struct {
 	Name      string
 	Completed bool
 	DueSec    int64
-	DueNano   int64
 }
 
 func (t TodoData) toTodo(id uint32) Todo {
@@ -23,13 +22,12 @@ func (t TodoData) toTodo(id uint32) Todo {
 		Id:        id,
 		Name:      t.Name,
 		Completed: t.Completed,
-		Due:       time.Unix(t.DueSec, t.DueNano),
+		Due:       time.Unix(t.DueSec, 0),
 	}
 }
 
-func (t *TodoData) fromTodo(from Todo) {
+func (t *TodoData) readFrom(from Todo) {
 	t.Name = from.Name
 	t.Completed = from.Completed
 	t.DueSec = from.Due.Unix()
-	t.DueNano = from.Due.UnixNano()
 }
